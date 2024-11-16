@@ -1,6 +1,7 @@
 """ Code built on the response at https://stackoverflow.com/questions/76320300/nameerror-name-mp-image-is-not-defined-with-mediapipe-gesture-recognition """
 
 # Standard library imports
+import os
 import random
 import threading
 
@@ -9,23 +10,38 @@ import cv2
 import mediapipe as mp
 from mediapipe.tasks import python
 
-gestures = ["Pointing_Up", "Closed_Fist", "Open_Palm", "ILoveYou", "Victory"]
+gestures = ["Pointing_Up", "Closed_Fist", "Open_Palm", "ILoveYou", "Victory", "Thumb_Up", "Thumb_Down"]
 model_path = "gesture_recognizer.task"
+
+
+def preload_images():
+    images = {}
+
+    for gesture in gestures:
+        print(gesture)
+        current_image = cv2.imread(os.path.join("images", gesture + ".jpeg"))
+        current_image = cv2.resize(current_image, (300, 300))
+        images[gesture] = current_image
+    
+    return images
+    
 
 class GestureRecognizer:
     def main(self):
-        
+
         GestureRecognizer = mp.tasks.vision.GestureRecognizer
         GestureRecognizerOptions = mp.tasks.vision.GestureRecognizerOptions
         VisionRunningMode = mp.tasks.vision.RunningMode
-        
-        
+
+
         self.gesture_to_do = random.choice(gestures)
         self.points = 0
 
         self.lock = threading.Lock()
         self.current_gestures = []
         
+        self.images = preload_images()
+
         options = GestureRecognizerOptions(
             base_options=python.BaseOptions(model_asset_path=model_path),
             running_mode=VisionRunningMode.LIVE_STREAM,
@@ -60,8 +76,8 @@ class GestureRecognizer:
                     mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=np_array)
                     recognizer.recognize_async(mp_image, timestamp)
                     timestamp = timestamp + 1 # should be monotonically increasing, because in LIVE_STREAM mode
- 
-                self.add_gesture_label_to_video(frame)
+
+                self.display_goal_gesture(frame)
 
             cv2.imshow('MediaPipe Hands', frame)
             if cv2.waitKey(1) & 0xFF == 27:
@@ -69,17 +85,24 @@ class GestureRecognizer:
 
         cap.release()
 
-    def add_gesture_label_to_video(self, frame):
+    def display_goal_gesture(self, frame):
         """ Displays the most recently recognised hand gesture in the top left corner of the stream. """
         self.lock.acquire()
-        gestures = self.current_gestures
+        goal_gesture = self.gesture_to_do
+        user_score = self.points
         self.lock.release()
-        y_pos = 50
-        for hand_gesture_name in gestures:
-            # show the prediction on the frame
-            cv2.putText(frame, hand_gesture_name, (10, y_pos), cv2.FONT_HERSHEY_SIMPLEX,
+
+        # Use text to say goal gesture
+        cv2.putText(frame, "Goal gesture: " + goal_gesture, (10, 50), cv2.FONT_HERSHEY_SIMPLEX,
                                 1, (0,0,255), 2, cv2.LINE_AA)
-            y_pos += 50
+
+        # Display the goal gesture as an image
+        frame[100:400, 50:350] = self.images[goal_gesture]
+        
+        # Display the user's score
+        cv2.putText(frame, "Score: " + str(user_score), (10, 1000), cv2.FONT_HERSHEY_SIMPLEX,
+                                1, (0,0,255), 2, cv2.LINE_AA)
+
 
     def __result_callback(self, result, output_image, timestamp_ms):
 
@@ -91,13 +114,11 @@ class GestureRecognizer:
                 gesture_name = single_hand_gesture_data[0].category_name
                 print(gesture_name)
                 self.current_gestures.append(gesture_name)
-                
+
                 if gesture_name == self.gesture_to_do:
                     self.points += 1
                     self.gesture_to_do = random.choice(gestures)
-            
-            print("points", self.points)
-            print("to do", self.gesture_to_do)
+
         self.lock.release()
 
 rec = GestureRecognizer()
