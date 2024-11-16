@@ -10,24 +10,26 @@ import mediapipe as mp
 from mediapipe.tasks import python
 
 gestures = ["Pointing_Up", "Closed_Fist", "Open_Palm", "ILoveYou", "Victory"]
+model_path = "gesture_recognizer.task"
 
 class GestureRecognizer:
     def main(self):
-        num_hands = 2
-        model_path = "gesture_recognizer.task"
+        
         GestureRecognizer = mp.tasks.vision.GestureRecognizer
         GestureRecognizerOptions = mp.tasks.vision.GestureRecognizerOptions
         VisionRunningMode = mp.tasks.vision.RunningMode
+        
         
         self.gesture_to_do = random.choice(gestures)
         self.points = 0
 
         self.lock = threading.Lock()
         self.current_gestures = []
+        
         options = GestureRecognizerOptions(
             base_options=python.BaseOptions(model_asset_path=model_path),
             running_mode=VisionRunningMode.LIVE_STREAM,
-            num_hands = num_hands,
+            num_hands = 1,
             result_callback=self.__result_callback)
         recognizer = GestureRecognizer.create_from_options(options)
 
@@ -36,7 +38,7 @@ class GestureRecognizer:
         mp_hands = mp.solutions.hands
         hands = mp_hands.Hands(
                 static_image_mode=False,
-                max_num_hands=num_hands,
+                max_num_hands=1,
                 min_detection_confidence=0.65,
                 min_tracking_confidence=0.65)
 
