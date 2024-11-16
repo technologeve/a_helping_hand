@@ -1,10 +1,12 @@
 import streamlit as st
 import pandas as pd
 
-st.title("Welcome to: A Helping Hand")
+st.markdown(
+    '<p style="color:fuchsia; font-size:24px">Welcome to: A Helping Hand</p>',
+    unsafe_allow_html = True)
+
 st.write("An EmilEve creation.")
 
 st.markdown("""
-    BLAH BLAH BLAH
-    Check it out [here] (http://localhost:8501/user_interface)"""
+    Check it out [here](http://localhost:8501/user_interface.py)"""
             )

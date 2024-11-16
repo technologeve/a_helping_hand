@@ -1,3 +1,4 @@
+from streamlit_webrtc import webrtc_streamer
 import streamlit as st
 import pandas as pd
 
@@ -19,3 +20,4 @@ with col1:
 with col2:
     st.markdown("### You!")
     st.info("Participant Box")
+    webrtc_streamer(key="streamer", sendback_audio=False)
