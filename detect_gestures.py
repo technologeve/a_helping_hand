@@ -1,4 +1,7 @@
-""" Code built on the response at https://stackoverflow.com/questions/76320300/nameerror-name-mp-image-is-not-defined-with-mediapipe-gesture-recognition """
+""" Game designed to encourage rehabilitation after hand and wrist injuries.
+
+    Code built on the response at 
+    https://stackoverflow.com/questions/76320300/nameerror-name-mp-image-is-not-defined-with-mediapipe-gesture-recognition """
 
 # Standard library imports
 import os
@@ -11,30 +14,40 @@ import cv2
 import mediapipe as mp
 from mediapipe.tasks import python
 
-gestures = ["Pointing_Up", "Closed_Fist", "Open_Palm", "ILoveYou", "Victory", "Thumb_Up", "Thumb_Down"]
+gestures = ["Pointing_Up", "Closed_Fist", "Open_Palm", 
+            "ILoveYou", "Victory", "Thumb_Up", "Thumb_Down"]
 model_path = "gesture_recognizer.task"
 gesture_readable = {"Pointing_Up": "Point finger", "Closed_Fist": "closed fist",
                     "Open_Palm": "Open hand", "ILoveYou": "I love you",
-                    "Victory": "Peace sign", "Thumb_Up": "Thumbs up", "Thumb_Down": "Thumbs down"}
+                    "Victory": "Peace sign", "Thumb_Up": "Thumbs up", 
+                    "Thumb_Down": "Thumbs down"}
 
 def preload_images():
+    """ Load gesture images and masks in advance. """
+    
     images = {}
     masks = {}
 
     for gesture in gestures:
+        # Load image
         current_image = cv2.imread(os.path.join("images", gesture + ".png"))
+        
+        # Resize to 300x300
         current_image = cv2.resize(current_image, (300, 300))
-        # print(current_image)
         images[gesture] = current_image
-        thresh, ret = cv2.threshold(current_image, 1, 255, cv2.THRESH_BINARY)
+        
+        # Create a mask
+        _, ret = cv2.threshold(current_image, 1, 255, cv2.THRESH_BINARY)
         masks[gesture] = ret
 
     return images, masks
 
 
-class GestureRecognizer():
+class HelpingHandGame():
+    """ Game, recognising hand gestures. """
 
     def main(self):
+        """ Main game function. """
 
         GestureRecognizer = mp.tasks.vision.GestureRecognizer
         GestureRecognizerOptions = mp.tasks.vision.GestureRecognizerOptions
@@ -145,6 +158,7 @@ class GestureRecognizer():
         self.lock.release()
 
 def main():
+    """ Main function. """
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-r", "--random_mode", action="store_true",
@@ -152,7 +166,7 @@ def main():
 
     args = parser.parse_args()
 
-    rec = GestureRecognizer()
+    rec = HelpingHandGame()
     if args.random_mode:
         rec.random_mode = True
     else:
