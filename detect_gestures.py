@@ -129,7 +129,7 @@ class HelpingHandGame():
         self.lock.release()
 
         # Use text to say goal gesture
-        cv2.rectangle(frame, (5, 10), (450, 80), (0,0,0), -1)
+        cv2.rectangle(frame, (5, 10), (450, 80), (102,47,32), -1)
         cv2.putText(frame, "Goal gesture: " + gesture_readable[goal_gesture], (10, 50), cv2.FONT_HERSHEY_SIMPLEX,
                                 1, (255,255,255), 2, cv2.LINE_AA)
 
@@ -148,7 +148,7 @@ class HelpingHandGame():
         frame[600:1000, 1450:1750] = roi
 
         # Display the user's score
-        cv2.rectangle(frame, (5, 410), (200, 475), (0,0,0), -1)
+        cv2.rectangle(frame, (5, 410), (200, 475), (102,47,32), -1)
         cv2.putText(frame, "Score: " + str(user_score), (13, 450), cv2.FONT_HERSHEY_SIMPLEX,
                                 1, (255,255,255), 2, cv2.LINE_AA)
 
