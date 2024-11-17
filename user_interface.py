@@ -1,11 +1,17 @@
-from streamlit_webrtc import webrtc_streamer
-import streamlit as st
-import pandas as pd
+""" Streamlit UI for 'a helping hand' app. """
+
+# Standard library imports
 import base64
 
-image_path = r"C:\Users\emily\OneDrive\Desktop\a_helping_hand\space_background.jpg"
+# Imports
+import streamlit as st
+from streamlit_webrtc import webrtc_streamer
+
+IMG_PATH = r"C:\Users\emily\OneDrive\Desktop\a_helping_hand\images\space_background.jpg"
 
 def set_background_image(image_path):
+    """ Adds background space image."""
+
     with open(image_path, "rb") as image_file:
         base64_image = base64.b64encode(image_file.read()).decode("utf-8")
     st.markdown(
@@ -21,10 +27,9 @@ def set_background_image(image_path):
         unsafe_allow_html=True
     )
 
-set_background_image(image_path)
+set_background_image(IMG_PATH)
 
 st.title("A Helping Hand")
- 
 st.write("""
 Complete the exercises to earn points
 """)
