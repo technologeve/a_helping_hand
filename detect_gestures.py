@@ -14,7 +14,7 @@ from mediapipe.tasks import python
 gestures = ["Pointing_Up", "Closed_Fist", "Open_Palm", "ILoveYou", "Victory", "Thumb_Up", "Thumb_Down"]
 model_path = "gesture_recognizer.task"
 gesture_readable = {"Pointing_Up": "Point finger", "Closed_Fist": "closed fist",
-                    "Open_Palm": "Open hand", "ILoveYou": "I love you", 
+                    "Open_Palm": "Open hand", "ILoveYou": "I love you",
                     "Victory": "Peace sign", "Thumb_Up": "Thumbs up", "Thumb_Down": "Thumbs down"}
 
 def preload_images():
@@ -22,20 +22,18 @@ def preload_images():
     masks = {}
 
     for gesture in gestures:
-        print(gesture)
         current_image = cv2.imread(os.path.join("images", gesture + ".png"))
         current_image = cv2.resize(current_image, (300, 300))
         # print(current_image)
         images[gesture] = current_image
         thresh, ret = cv2.threshold(current_image, 1, 255, cv2.THRESH_BINARY)
         masks[gesture] = ret
-        print(masks[gesture])
-    
+
     return images, masks
-    
+
 
 class GestureRecognizer():
-        
+
     def main(self):
 
         GestureRecognizer = mp.tasks.vision.GestureRecognizer
@@ -48,7 +46,7 @@ class GestureRecognizer():
 
         self.lock = threading.Lock()
         self.current_gestures = []
-        
+
         self.images, self.masks = preload_images()
 
         options = GestureRecognizerOptions(
@@ -58,7 +56,7 @@ class GestureRecognizer():
             result_callback=self.__result_callback)
         recognizer = GestureRecognizer.create_from_options(options)
 
-        timestamp = 0 
+        timestamp = 0
         mp_drawing = mp.solutions.drawing_utils
         mp_hands = mp.solutions.hands
         hands = mp_hands.Hands(
@@ -96,7 +94,7 @@ class GestureRecognizer():
 
     def display_goal_gesture(self, frame):
         """ Displays the most recently recognised hand gesture in the top left corner of the stream. """
-        
+
         self.lock.acquire()
         goal_gesture = self.gesture_to_do
         user_score = self.points
@@ -142,24 +140,24 @@ class GestureRecognizer():
                             self.gesture_to_do = "Open_Palm"
                         else:
                             self.gesture_to_do = "Closed_Fist"
-                
+
 
         self.lock.release()
 
 def main():
-    
+
     parser = argparse.ArgumentParser()
     parser.add_argument("-r", "--random_mode", action="store_true",
                         help="If flag used, gives user randomly allocated gestures.")
 
     args = parser.parse_args()
-    
+
     rec = GestureRecognizer()
     if args.random_mode:
         rec.random_mode = True
     else:
         rec.random_mode = False
-    
+
     rec.main()
 
 if __name__ == "__main__":
