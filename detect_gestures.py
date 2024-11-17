@@ -53,7 +53,6 @@ def load_astronaut():
 
     # Create a mask
     _, astro_mask = cv2.threshold(astro, 1, 255, cv2.THRESH_BINARY)
-    print(astro.shape, astro_mask.shape)
 
     return astro, astro_mask
 
@@ -142,7 +141,6 @@ class HelpingHandGame():
         frame[100:400, 50:350] = roi
 
         # Display the astronaut
-        print(frame[600:1000, 1450:1750].shape, cv2.bitwise_not(self.astro_mask).shape)
         curr_fr = cv2.bitwise_and(frame[600:1000, 1450:1750], cv2.bitwise_not(self.astro_mask))
         logo = cv2.bitwise_and(self.astro, self.astro_mask)
         roi = cv2.bitwise_or(curr_fr, logo)
