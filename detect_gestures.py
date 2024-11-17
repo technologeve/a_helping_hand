@@ -12,18 +12,25 @@ from mediapipe.tasks import python
 
 gestures = ["Pointing_Up", "Closed_Fist", "Open_Palm", "ILoveYou", "Victory", "Thumb_Up", "Thumb_Down"]
 model_path = "gesture_recognizer.task"
-
+gesture_readable = {"Pointing_Up": "Point finger", "Closed_Fist": "closed fist",
+                    "Open_Palm": "Open hand", "ILoveYou": "I love you", 
+                    "Victory": "Peace sign", "Thumb_Up": "Thumbs up", "Thumb_Down": "Thumbs"}
 
 def preload_images():
     images = {}
+    masks = {}
 
     for gesture in gestures:
         print(gesture)
-        current_image = cv2.imread(os.path.join("images", gesture + ".jpeg"))
+        current_image = cv2.imread(os.path.join("images", gesture + ".png"))
         current_image = cv2.resize(current_image, (300, 300))
+        # print(current_image)
         images[gesture] = current_image
+        thresh, ret = cv2.threshold(current_image, 1, 255, cv2.THRESH_BINARY)
+        masks[gesture] = ret
+        print(masks[gesture])
     
-    return images
+    return images, masks
     
 
 class GestureRecognizer:
@@ -40,7 +47,7 @@ class GestureRecognizer:
         self.lock = threading.Lock()
         self.current_gestures = []
         
-        self.images = preload_images()
+        self.images, self.masks = preload_images()
 
         options = GestureRecognizerOptions(
             base_options=python.BaseOptions(model_asset_path=model_path),
@@ -97,7 +104,16 @@ class GestureRecognizer:
                                 1, (0,0,255), 2, cv2.LINE_AA)
 
         # Display the goal gesture as an image
-        frame[100:400, 50:350] = self.images[goal_gesture]
+        curr_fr = cv2.bitwise_and(frame[100:400, 50:350], cv2.bitwise_not(self.masks[goal_gesture]))
+        logo = cv2.bitwise_and(self.images[goal_gesture], self.masks[goal_gesture])
+        roi = cv2.bitwise_or(curr_fr,logo)
+        # img[0:rows, 0:cols] = roi
+
+        print(frame[100:400, 50:350].shape)
+        print(self.images[goal_gesture].shape)
+        print(self.masks[goal_gesture][:,:,0].shape)
+        # masked = cv2.bitwise_and(frame[100:400, 50:350], self.images[goal_gesture], mask=self.masks[goal_gesture][:,:,0])
+        frame[100:400, 50:350] = roi
         
         # Display the user's score
         cv2.putText(frame, "Score: " + str(user_score), (10, 1000), cv2.FONT_HERSHEY_SIMPLEX,
