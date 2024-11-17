@@ -2,6 +2,7 @@
 
 # Standard library imports
 import os
+import argparse
 import random
 import threading
 
@@ -33,7 +34,8 @@ def preload_images():
     return images, masks
     
 
-class GestureRecognizer:
+class GestureRecognizer():
+        
     def main(self):
 
         GestureRecognizer = mp.tasks.vision.GestureRecognizer
@@ -122,18 +124,43 @@ class GestureRecognizer:
 
         self.lock.acquire() # solves potential concurrency issues
         self.current_gestures = []
+
         if result is not None and any(result.gestures):
 
             for single_hand_gesture_data in result.gestures:
                 gesture_name = single_hand_gesture_data[0].category_name
-                
+
                 self.current_gestures.append(gesture_name)
 
                 if gesture_name == self.gesture_to_do:
                     self.points += 1
-                    self.gesture_to_do = random.choice(gestures)
+
+                    if self.random_mode == True:
+                        self.gesture_to_do = random.choice(gestures)
+                    else:
+                        if self.gesture_to_do == "Closed_Fist":
+                            self.gesture_to_do = "Open_Palm"
+                        else:
+                            self.gesture_to_do = "Closed_Fist"
+                
 
         self.lock.release()
 
-rec = GestureRecognizer()
-rec.main()
+def main():
+    
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-r", "--random_mode", action="store_true",
+                        help="If flag used, gives user randomly allocated gestures.")
+
+    args = parser.parse_args()
+    
+    rec = GestureRecognizer()
+    if args.random_mode:
+        rec.random_mode = True
+    else:
+        rec.random_mode = False
+    
+    rec.main()
+
+if __name__ == "__main__":
+    main()
