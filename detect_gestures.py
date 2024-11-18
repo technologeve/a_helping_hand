@@ -15,21 +15,22 @@ import mediapipe as mp
 from playsound import playsound
 from mediapipe.tasks import python
 
-gestures = ["Pointing_Up", "Closed_Fist", "Open_Palm", 
+MODEL_PATH = os.path.join("model", "gesture_recognizer.task")
+GESTURES = ["Pointing_Up", "Closed_Fist", "Open_Palm", 
             "ILoveYou", "Victory", "Thumb_Up", "Thumb_Down"]
-model_path = "gesture_recognizer.task"
-gesture_readable = {"Pointing_Up": "Point finger", "Closed_Fist": "closed fist",
+READABLE_GESTURES = {"Pointing_Up": "Point finger", "Closed_Fist": "closed fist",
                     "Open_Palm": "Open hand", "ILoveYou": "I love you",
                     "Victory": "Peace sign", "Thumb_Up": "Thumbs up", 
                     "Thumb_Down": "Thumbs down"}
 
+
 def preload_images():
     """ Load gesture images and masks in advance. """
-    
+
     images = {}
     masks = {}
 
-    for gesture in gestures:
+    for gesture in GESTURES:
         # Load image
         current_image = cv2.imread(os.path.join("images", gesture + ".png"))
 
@@ -71,7 +72,7 @@ class HelpingHandGame():
 
 
         if self.random_mode is True:
-            self.gesture_to_do = random.choice(gestures)
+            self.gesture_to_do = random.choice(GESTURES)
         else:
             self.gesture_to_do = "Closed_Fist"
     
@@ -84,7 +85,7 @@ class HelpingHandGame():
         self.astro, self.astro_mask = load_astronaut()
 
         options = GestureRecognizerOptions(
-            base_options=python.BaseOptions(model_asset_path=model_path),
+            base_options=python.BaseOptions(model_asset_path=MODEL_PATH),
             running_mode=VisionRunningMode.LIVE_STREAM,
             num_hands = 1,
             result_callback=self.__result_callback)
@@ -142,7 +143,7 @@ class HelpingHandGame():
 
         # Use text to say goal gesture
         cv2.rectangle(frame, (5, 10), (450, 80), (102,47,32), -1)
-        cv2.putText(frame, "Goal gesture: " + gesture_readable[goal_gesture], (10, 50), cv2.FONT_HERSHEY_SIMPLEX,
+        cv2.putText(frame, "Goal gesture: " + READABLE_GESTURES[goal_gesture], (10, 50), cv2.FONT_HERSHEY_SIMPLEX,
                                 1, (255,255,255), 2, cv2.LINE_AA)
 
         # Display the goal gesture as an image
@@ -181,7 +182,7 @@ class HelpingHandGame():
                     self.points += 1
 
                     if self.random_mode == True:
-                        self.gesture_to_do = random.choice(gestures)
+                        self.gesture_to_do = random.choice(GESTURES)
                     else:
                         if self.gesture_to_do == "Closed_Fist":
                             self.gesture_to_do = "Open_Palm"
