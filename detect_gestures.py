@@ -50,12 +50,15 @@ def load_astronaut():
 
     astro_image = cv2.imread(os.path.join("images",  "astronaut.png"))
 
-    astro = cv2.resize(astro_image, (300, 400))
+    astronaut_with_bg = cv2.resize(astro_image, (300, 400))
 
     # Create a mask
-    _, astro_mask = cv2.threshold(astro, 1, 255, cv2.THRESH_BINARY)
+    _, astro_mask = cv2.threshold(astronaut_with_bg, 1, 255, cv2.THRESH_BINARY)
 
-    return astro, astro_mask
+    # Apply the mask
+    astronaut = cv2.bitwise_and(astronaut_with_bg, astro_mask)
+
+    return astronaut, cv2.bitwise_not(astro_mask)
 
 
 class HelpingHandGame():
@@ -63,26 +66,23 @@ class HelpingHandGame():
 
     def __init__(self, random_mode):
         """ Main game function. """
-       
+
+        # Preload graphics
+        self.images, self.masks = preload_images()
+        self.masked_astronaut, self.astro_mask = load_astronaut()
+
+        # Set game mode
         self.random_mode = random_mode
 
+        # Initialise point score
+        self.points = 0
+
+        # Setup gesture recognition system
         GestureRecognizer = mp.tasks.vision.GestureRecognizer
         GestureRecognizerOptions = mp.tasks.vision.GestureRecognizerOptions
         VisionRunningMode = mp.tasks.vision.RunningMode
 
-
-        if self.random_mode is True:
-            self.gesture_to_do = random.choice(GESTURES)
-        else:
-            self.gesture_to_do = "Closed_Fist"
-    
-        self.points = 0
-
         self.lock = threading.Lock()
-        self.current_gestures = []
-
-        self.images, self.masks = preload_images()
-        self.astro, self.astro_mask = load_astronaut()
 
         options = GestureRecognizerOptions(
             base_options=python.BaseOptions(model_asset_path=MODEL_PATH),
@@ -91,11 +91,11 @@ class HelpingHandGame():
             result_callback=self.__result_callback)
         self.recognizer = GestureRecognizer.create_from_options(options)
 
-        self.launch_game()
+        self.run_game()
 
 
-
-    def launch_game(self):
+    def run_game(self):
+        """ Run the rehabilitation game. """
         timestamp = 0
         mp_drawing = mp.solutions.drawing_utils
         mp_hands = mp.solutions.hands
@@ -104,6 +104,12 @@ class HelpingHandGame():
                 max_num_hands=1,
                 min_detection_confidence=0.65,
                 min_tracking_confidence=0.65)
+
+        # Set initial goal gesture
+        if self.random_mode is True:
+            self.gesture_to_do = random.choice(GESTURES)
+        else:
+            self.gesture_to_do = "Closed_Fist"
 
         cap = cv2.VideoCapture(0)
 
@@ -126,7 +132,7 @@ class HelpingHandGame():
 
                 self.display_goal_gesture(frame)
 
-            cv2.imshow('MediaPipe Hands', frame)
+            cv2.imshow("A Helping Hand", frame)
             if cv2.waitKey(1) & 0xFF == 27:
                 break
 
@@ -143,8 +149,9 @@ class HelpingHandGame():
 
         # Use text to say goal gesture
         cv2.rectangle(frame, (5, 10), (450, 80), (102,47,32), -1)
-        cv2.putText(frame, "Goal gesture: " + READABLE_GESTURES[goal_gesture], (10, 50), cv2.FONT_HERSHEY_SIMPLEX,
-                                1, (255,255,255), 2, cv2.LINE_AA)
+        cv2.putText(frame, "Goal gesture: " + READABLE_GESTURES[goal_gesture],
+                    (10, 50), cv2.FONT_HERSHEY_SIMPLEX,
+                    1, (255,255,255), 2, cv2.LINE_AA)
 
         # Display the goal gesture as an image
         curr_fr = cv2.bitwise_and(frame[100:400, 50:350], cv2.bitwise_not(self.masks[goal_gesture]))
@@ -154,11 +161,9 @@ class HelpingHandGame():
         frame[100:400, 50:350] = roi
 
         # Display the astronaut
-        curr_fr = cv2.bitwise_and(frame[600:1000, 1450:1750], cv2.bitwise_not(self.astro_mask))
-        logo = cv2.bitwise_and(self.astro, self.astro_mask)
-        roi = cv2.bitwise_or(curr_fr, logo)
-
-        frame[600:1000, 1450:1750] = roi
+        curr_fr = cv2.bitwise_and(frame[600:1000, 1500:1800], self.astro_mask)
+        roi = cv2.bitwise_or(curr_fr, self.masked_astronaut)
+        frame[600:1000, 1500:1800] = roi
 
         # Display the user's score
         cv2.rectangle(frame, (5, 410), (200, 475), (102,47,32), -1)
@@ -181,7 +186,7 @@ class HelpingHandGame():
                 if gesture_name == self.gesture_to_do:
                     self.points += 1
 
-                    if self.random_mode == True:
+                    if self.random_mode is True:
                         self.gesture_to_do = random.choice(GESTURES)
                     else:
                         if self.gesture_to_do == "Closed_Fist":
