@@ -167,16 +167,14 @@ class HelpingHandGame():
 
 
     def __result_callback(self, result, output_image, timestamp_ms):
+        """ Function triggered when gesture recognised. """
 
         self.lock.acquire() # solves potential concurrency issues
-        self.current_gestures = []
 
         if result is not None and any(result.gestures):
 
             for single_hand_gesture_data in result.gestures:
                 gesture_name = single_hand_gesture_data[0].category_name
-
-                self.current_gestures.append(gesture_name)
 
                 if gesture_name == self.gesture_to_do:
                     self.points += 1
@@ -191,6 +189,7 @@ class HelpingHandGame():
 
 
         self.lock.release()
+
 
 def main():
     """ Main function. """
