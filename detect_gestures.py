@@ -88,8 +88,13 @@ class HelpingHandGame():
             running_mode=VisionRunningMode.LIVE_STREAM,
             num_hands = 1,
             result_callback=self.__result_callback)
-        recognizer = GestureRecognizer.create_from_options(options)
+        self.recognizer = GestureRecognizer.create_from_options(options)
 
+        self.launch_game()
+
+
+
+    def launch_game(self):
         timestamp = 0
         mp_drawing = mp.solutions.drawing_utils
         mp_hands = mp.solutions.hands
@@ -115,7 +120,7 @@ class HelpingHandGame():
                 for hand_landmarks in results.multi_hand_landmarks:
                     mp_drawing.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
                     mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=np_array)
-                    recognizer.recognize_async(mp_image, timestamp)
+                    self.recognizer.recognize_async(mp_image, timestamp)
                     timestamp += 1
 
                 self.display_goal_gesture(frame)
@@ -125,6 +130,7 @@ class HelpingHandGame():
                 break
 
         cap.release()
+
 
     def display_goal_gesture(self, frame):
         """ Displays the most recently recognised hand gesture in the top left corner of the stream. """
