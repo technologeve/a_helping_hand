@@ -60,15 +60,21 @@ def load_astronaut():
 class HelpingHandGame():
     """ Game, recognising hand gestures. """
 
-    def main(self):
+    def __init__(self, random_mode):
         """ Main game function. """
+       
+        self.random_mode = random_mode
 
         GestureRecognizer = mp.tasks.vision.GestureRecognizer
         GestureRecognizerOptions = mp.tasks.vision.GestureRecognizerOptions
         VisionRunningMode = mp.tasks.vision.RunningMode
 
 
-        self.gesture_to_do = random.choice(gestures)
+        if self.random_mode is True:
+            self.gesture_to_do = random.choice(gestures)
+        else:
+            self.gesture_to_do = "Closed_Fist"
+    
         self.points = 0
 
         self.lock = threading.Lock()
@@ -191,13 +197,7 @@ def main():
     threading.Thread(target=playsound, args=('space.mp3',), daemon=True).start()
     # playsound('space.mp3')
 
-    rec = HelpingHandGame()
-    if args.random_mode:
-        rec.random_mode = True
-    else:
-        rec.random_mode = False
-
-    rec.main()
+    rec = HelpingHandGame(args.random_mode)
 
 if __name__ == "__main__":
     main()
