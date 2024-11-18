@@ -78,18 +78,13 @@ class HelpingHandGame():
         self.points = 0
 
         # Setup gesture recognition system
-        GestureRecognizer = mp.tasks.vision.GestureRecognizer
-        GestureRecognizerOptions = mp.tasks.vision.GestureRecognizerOptions
-        VisionRunningMode = mp.tasks.vision.RunningMode
-
         self.lock = threading.Lock()
-
-        options = GestureRecognizerOptions(
+        options = mp.tasks.vision.GestureRecognizerOptions(
             base_options=python.BaseOptions(model_asset_path=MODEL_PATH),
-            running_mode=VisionRunningMode.LIVE_STREAM,
+            running_mode=mp.tasks.vision.RunningMode.LIVE_STREAM,
             num_hands = 1,
             result_callback=self.__result_callback)
-        self.recognizer = GestureRecognizer.create_from_options(options)
+        self.recognizer = mp.tasks.vision.GestureRecognizer.create_from_options(options)
 
         self.run_game()
 
