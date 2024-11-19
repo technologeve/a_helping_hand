@@ -6,4 +6,5 @@ Recognising hand gestures, the program becomes an interactive game where the use
 
 This solution promotes creative escapism and confidence growth. Physiotherapy becomes exciting and accessible for a range of young patients.
 
+Hack Sheffield 9: 1st Place Overall
 ![alt text](https://github.com/technologeve/a_helping_hand/blob/main/images/demo_image.jpg?raw=true)
