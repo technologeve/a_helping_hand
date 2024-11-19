@@ -1,7 +1,6 @@
 """ Game designed to encourage rehabilitation after hand and wrist injuries.
 
-    Code built on the response at 
-    https://stackoverflow.com/questions/76320300/nameerror-name-mp-image-is-not-defined-with-mediapipe-gesture-recognition """
+    Code built on the response at https://stackoverflow.com/a/76340423"""
 
 # Standard library imports
 import os
@@ -15,12 +14,13 @@ import mediapipe as mp
 from playsound import playsound
 from mediapipe.tasks import python
 
+
 MODEL_PATH = os.path.join("model", "gesture_recognizer.task")
-GESTURES = ["Pointing_Up", "Closed_Fist", "Open_Palm", 
+GESTURES = ["Pointing_Up", "Closed_Fist", "Open_Palm",
             "ILoveYou", "Victory", "Thumb_Up", "Thumb_Down"]
 READABLE_GESTURES = {"Pointing_Up": "Point finger", "Closed_Fist": "closed fist",
                     "Open_Palm": "Open hand", "ILoveYou": "I love you",
-                    "Victory": "Peace sign", "Thumb_Up": "Thumbs up", 
+                    "Victory": "Peace sign", "Thumb_Up": "Thumbs up",
                     "Thumb_Down": "Thumbs down"}
 
 
@@ -77,6 +77,9 @@ class HelpingHandGame():
         # Initialise point score
         self.points = 0
 
+        # Set initial goal gesture
+        self.gesture_to_do = self.select_next_gesture()
+
         # Setup gesture recognition system
         self.lock = threading.Lock()
         options = mp.tasks.vision.GestureRecognizerOptions(
@@ -99,12 +102,6 @@ class HelpingHandGame():
                 max_num_hands=1,
                 min_detection_confidence=0.65,
                 min_tracking_confidence=0.65)
-
-        # Set initial goal gesture
-        if self.random_mode is True:
-            self.gesture_to_do = random.choice(GESTURES)
-        else:
-            self.gesture_to_do = "Closed_Fist"
 
         cap = cv2.VideoCapture(0)
 
@@ -135,7 +132,8 @@ class HelpingHandGame():
 
 
     def display_goal_gesture(self, frame):
-        """ Displays the most recently recognised hand gesture in the top left corner of the stream. """
+        """ Displays the most recently recognised hand gesture 
+            in the top left corner of the stream. """
 
         self.lock.acquire()
         goal_gesture = self.gesture_to_do
@@ -166,27 +164,35 @@ class HelpingHandGame():
                                 1, (255,255,255), 2, cv2.LINE_AA)
 
 
-    def __result_callback(self, result, output_image, timestamp_ms):
+    def select_next_gesture(self):
+        """ Selects next goal gesture based on game mode. """
+
+        if self.random_mode is True:
+            gesture_to_do = random.choice(GESTURES)
+
+        else:
+            if gesture_to_do == "Closed_Fist":
+                gesture_to_do = "Open_Palm"
+            else:
+                gesture_to_do = "Closed_Fist"
+
+        return gesture_to_do
+
+
+    def __result_callback(self, result, _, __):
         """ Function triggered when gesture recognised. """
 
-        self.lock.acquire() # solves potential concurrency issues
+        self.lock.acquire()
 
         if result is not None and any(result.gestures):
 
-            for single_hand_gesture_data in result.gestures:
-                gesture_name = single_hand_gesture_data[0].category_name
+            for current_gesture in result.gestures:
+                gesture_name = current_gesture[0].category_name
 
                 if gesture_name == self.gesture_to_do:
                     self.points += 1
 
-                    if self.random_mode is True:
-                        self.gesture_to_do = random.choice(GESTURES)
-                    else:
-                        if self.gesture_to_do == "Closed_Fist":
-                            self.gesture_to_do = "Open_Palm"
-                        else:
-                            self.gesture_to_do = "Closed_Fist"
-
+                    self.gesture_to_do = self.select_next_gesture()
 
         self.lock.release()
 
@@ -194,16 +200,19 @@ class HelpingHandGame():
 def main():
     """ Main function. """
 
+    # Take in command line flag to determine game mode
     parser = argparse.ArgumentParser()
     parser.add_argument("-r", "--random_mode", action="store_true",
                         help="If flag used, gives user randomly allocated gestures.")
 
     args = parser.parse_args()
 
+    # Start background music
     threading.Thread(target=playsound, args=('space.mp3',), daemon=True).start()
-    # playsound('space.mp3')
 
-    rec = HelpingHandGame(args.random_mode)
+    # Run game
+    HelpingHandGame(args.random_mode)
+
 
 if __name__ == "__main__":
     main()
